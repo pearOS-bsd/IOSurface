@@ -6,6 +6,7 @@ macOS 26.7.2 x86_64.
 * `IOServiceOpen(IOSurfaceRoot, type 0)` gives a connection.
 * `IOConnectCallMethod`:
   * **selector 13**: no input, 40 bytes out (the limits of a surface; the Mac's answer is copied: `3f 00 00 00 3f 00 00 00 00 00 04 00 …`).
+  * **selector 4 = look-up**: one scalar (the surface id), the same 0xc68 bytes out as create; the kernel maps the memory into the calling task.  Only a surface made with `IOSurfaceIsGlobal = true` can be found by id from another process; otherwise `kIOReturnBadArgument` (`0xe00002c2`), seen on the Mac.
   * **selector 44**, one scalar: `kIOReturnNotFound` (`0xe00002f0`) for an unknown value.
   * **selector 0 = create**: one scalar (the id of the parent surface, 0); the properties as a binary serialized dictionary (`OSSerializeBinary`: signature `0xd3`, the dictionary header `0x81000005`,
     then symbol / value pairs; numbers are 8 bytes; keys `IOSurfaceWidth`, `IOSurfaceHeight`, `IOSurfaceBytesPerElement`, `IOSurfacePixelFormat`, `IOSurfaceName`, optional `IOSurfaceBytesPerRow`, `IOSurfaceAllocSize`);
@@ -16,4 +17,4 @@ macOS 26.7.2 x86_64.
 * Fast methods are **mach trap 100** (`iokit_user_client_trap`, `IOConnectTrapN`): index 2 lock (`id`, `options`, `*seed`), 3 unlock, 5 release.
 * Lock, unlock and look-up of a surface that the process made itself need no kernel call beyond these.
 
-Not yet found: the selector of a look-up of an id that the process does not hold, `IOSurfaceCreateMachPort` / `IOSurfaceLookupFromMachPort`, planes (the tail of the structure), release.
+Not yet found: `IOSurfaceCreateMachPort` / `IOSurfaceLookupFromMachPort`, planes (the tail of the structure), release.
